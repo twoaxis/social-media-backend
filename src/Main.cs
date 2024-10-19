@@ -1,4 +1,9 @@
+using social_media_backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("Database");
+DatabaseService.Initialize(connectionString!);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

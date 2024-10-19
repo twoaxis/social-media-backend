@@ -1,0 +1,11 @@
+CREATE TABLE users (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(256) NOT NULL UNIQUE,
+    name VARCHAR(2048) NOT NULL,
+    email VARCHAR(1024) NOT NULL,
+    password VARCHAR(4096) NOT NULL
+);
+
+CREATE TABLE revoked_tokens (
+    token VARCHAR(1024) NOT NULL
+);

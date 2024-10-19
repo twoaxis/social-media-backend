@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace opensource_backend_api.Controllers
+namespace social_media_backend.Controllers
 {
     [Route("/")]
     [ApiController]
