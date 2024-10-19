@@ -78,6 +78,58 @@ namespace social_media_backend.Controllers
                 token = tokenString
             });
         }
+	[HttpPost("login")]
+        public IActionResult Login([FromBody] LoginRequestModel loginRequestModel)
+        {
+            DatabaseService.OpenConnection();
+            int userId = 0;
+            string name = string.Empty;
+            string email = string.Empty;
+            string storedPasswordHash = string.Empty;
+            using (var command = new MySqlCommand("SELECT id , name , email , password FROM users WHERE email = @email AND password = @password", DatabaseService.Connection))
+            {
+                command.Parameters.AddWithValue("@email", loginRequestModel.email);
+                command.Parameters.AddWithValue("@password", HashUtil.GenerateSHA256Hash(loginRequestModel.password));
+                var result = command.ExecuteReader();
+                if (result.Read())
+                    {
+                        userId = result.GetInt32(0);
+                        name = result.GetString(1);
+                        email = result.GetString(2);
+                        storedPasswordHash = result.GetString(3);
+                    }
+            }
+
+            if ((loginRequestModel.email==email) && (HashUtil.GenerateSHA256Hash(loginRequestModel.password)==storedPasswordHash))
+            {
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]!));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                var token = new JwtSecurityToken(
+                    issuer: "twoaxis.xyz",
+                    claims:[
+                        new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                        new Claim("name", name),
+                        new Claim(JwtRegisteredClaimNames.Email, email)
+                    ],
+                    expires: DateTime.Now.AddHours(24),
+                    signingCredentials: creds
+                );
+
+                DatabaseService.CloseConnection();
+
+                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                return Ok(new {
+                    token = tokenString
+                });
+                
+            }
+            else {
+                DatabaseService.CloseConnection();
+                return Unauthorized();
+            }
+
+        }
     }
     
 }
