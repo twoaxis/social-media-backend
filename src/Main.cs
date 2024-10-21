@@ -10,6 +10,10 @@ TokenUtil.Initialize(builder.Configuration["JWT:Secret"]!);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", corsPolicyBuilder => corsPolicyBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 
 var app = builder.Build();
 
@@ -20,4 +24,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+app.UseCors("AllowAll");
 app.Run();
