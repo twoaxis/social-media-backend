@@ -37,5 +37,26 @@ namespace social_media_backend.src.Controllers
             }
             return null;
         }
+        // HTTP GET endpoint to retrieve the user profile
+        [HttpGet()]
+        public IActionResult GetProfile(string username)
+        {
+            try
+            {
+                var userProfile = GetUserProfile(username);
+
+                if (userProfile == null)
+                {
+                    return NotFound(); // Return 404 if user not found
+                }
+
+                return Ok(userProfile); // Return 200 OK with the username
+            }
+            catch (Exception ex)
+            {
+                // Handle any unexpected exceptions
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
     }
 }
