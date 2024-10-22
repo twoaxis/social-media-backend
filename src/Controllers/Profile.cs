@@ -8,13 +8,13 @@ namespace social_media_backend.src.Controllers
     [ApiController]
     public class ProfileController : ControllerBase
     {
-        private string GetUserProfile(string username)
+        private (string UserName,string Name) GetUserProfile(string username)
         {
             DatabaseService.OpenConnection();
 
             try
             {
-                using (var command = new MySqlCommand("SELECT username FROM users WHERE username = @username", DatabaseService.Connection))
+                using (var command = new MySqlCommand("SELECT username, name FROM users WHERE username = @username", DatabaseService.Connection))
                 {
                     command.Parameters.AddWithValue("@username", username);
 
@@ -22,7 +22,7 @@ namespace social_media_backend.src.Controllers
                     {
                         if (reader.Read())
                         {
-                            return reader.GetString("username");
+                            return (reader.GetString("username") , reader.GetString("name"));
                         }
                     }
                 }
@@ -35,7 +35,7 @@ namespace social_media_backend.src.Controllers
             {
                 DatabaseService.CloseConnection();
             }
-            return null;
+            return (null,null);
         }
         // HTTP GET endpoint to retrieve the user profile
         [HttpGet()]
@@ -45,16 +45,15 @@ namespace social_media_backend.src.Controllers
             {
                 var userProfile = GetUserProfile(username);
 
-                if (userProfile == null)
+                if (userProfile.UserName == null)
                 {
-                    return NotFound(); // Return 404 if user not found
+                    return NotFound(); 
                 }
 
-                return Ok(userProfile); // Return 200 OK with the username
+                return Ok(new { username = userProfile.UserName, name = userProfile.Name }); 
             }
             catch (Exception ex)
             {
-                // Handle any unexpected exceptions
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
