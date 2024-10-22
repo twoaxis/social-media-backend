@@ -4,7 +4,7 @@ using social_media_backend.Services;
 
 namespace social_media_backend.src.Controllers
 {
-    [Route("/profile")]
+    [Route("/profile/{username}")]
     [ApiController]
     public class ProfileController : ControllerBase
     {
