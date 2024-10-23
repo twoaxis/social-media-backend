@@ -3,6 +3,10 @@
 
 .vscode/
 .idea/
+.vs/
 
 .env
 .env.development
+
+*.csproj.user
+*.sln
