@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using social_media_backend.Exceptions;
+using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.Auth;
 using social_media_backend.Services;
 
@@ -25,7 +26,17 @@ namespace social_media_backend.Controllers
 			}
 			catch (UserExistsException)
 			{
-				return Conflict();
+				return Conflict(new
+				{
+					code = "auth/username-taken"
+				});
+			}
+			catch (EmailTakenException)
+			{
+				return Conflict(new
+				{
+					code = "auth/email-taken"
+				});
 			}
 		}
         

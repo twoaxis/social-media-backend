@@ -4,19 +4,19 @@ using social_media_backend.src.Exceptions;
 
 namespace social_media_backend.src.Controllers
 {
-    [Route("/profile/{username}")]
+    [Route("/users")]
     [ApiController]
-    public class ProfileController : ControllerBase
+    public class UserController : ControllerBase
     {
-        private readonly ProfileService _profileService = new();
+        private readonly UserService _userService = new();
 
         // HTTP GET endpoint to retrieve the user profile
-        [HttpGet()]
-        public IActionResult GetProfile(string username)
+        [HttpGet("{username}")]
+        public IActionResult GetUser(string username)
         {
             try
             {
-                var userProfile = _profileService.GetUserProfile(username);
+                var userProfile = _userService.GetUserProfile(username);
 
                 return Ok(new { username = userProfile.UserName, name = userProfile.Name }); 
             }
