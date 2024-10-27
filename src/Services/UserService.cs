@@ -4,13 +4,13 @@ using social_media_backend.src.Exceptions;
 
 namespace social_media_backend.src.Services
 {
-    public class ProfileService
+    public class UserService
     {
         public (string UserName, string Name) GetUserProfile(string username)
         {
             DatabaseService.OpenConnection();
 
-            if (!DoesProfileExists(username))
+            if (!DoesUserExistByUsername(username))
             {
                 DatabaseService.CloseConnection();
                 throw new UserNotFoundException();
@@ -31,22 +31,19 @@ namespace social_media_backend.src.Services
             DatabaseService.CloseConnection();
             return (null, null);
         }
-        private bool DoesProfileExists(string username)
+        private static bool DoesUserExistByUsername(string username)
         {
-            using (var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE username = @username", DatabaseService.Connection))
-            {
-                command.Parameters.AddWithValue("@username", username);
-                var result = command.ExecuteScalar();
-
-                if (result != null && int.TryParse(result.ToString(), out int count))
-                {
-                    Console.WriteLine(count);
-                    return count > 0; 
-                }
-
-                return false;
-            }
+            using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE username = @username", DatabaseService.Connection);
+            command.Parameters.AddWithValue("@username", username);
+            var result = command.ExecuteScalar();
+            return Convert.ToInt32(result) > 0;
         }
-
+        private static bool DoesUserExistByEmail(string email)
+        {
+            using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE email = @email", DatabaseService.Connection);
+            command.Parameters.AddWithValue("@email", email);
+            var result = command.ExecuteScalar();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }
