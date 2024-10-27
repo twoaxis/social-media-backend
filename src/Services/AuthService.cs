@@ -1,7 +1,7 @@
 using MySql.Data.MySqlClient;
 using social_media_backend.Exceptions;
 using social_media_backend.Util;
-
+using System.IdentityModel.Tokens.Jwt;
 namespace social_media_backend.Services;
 
 public class AuthService
@@ -73,4 +73,42 @@ public class AuthService
 		var result = command.ExecuteScalar();
 		return Convert.ToInt32(result) > 0;
 	}
+
+	private int? GetUserIdFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
+
+        if (jwtToken == null)
+            return null;
+
+        var userIdClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == JwtRegisteredClaimNames.Sub);
+        return userIdClaim != null ? int.Parse(userIdClaim.Value) : (int?)null;
+    }
+
+	private static bool DoesUserExistByID(int UserID)
+	{
+		using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE id = @UserID", DatabaseService.Connection);
+		command.Parameters.AddWithValue("@UserID", UserID);
+		var result = command.ExecuteScalar();
+		return Convert.ToInt32(result) > 0;
+	}
+	public bool Logout(string token){
+		var ID=GetUserIdFromToken(token);
+		if(ID == null) return false;
+		DatabaseService.OpenConnection();
+		if(!DoesUserExistByID(ID.Value)){
+			DatabaseService.CloseConnection();
+			return false;
+		}
+		using(var command = new MySqlCommand("INSERT INTO revoked_tokens (token) VALUES (@token)",DatabaseService.Connection))
+		{
+			command.Parameters.AddWithValue("@token", token);
+			command.ExecuteNonQuery();
+		}
+		DatabaseService.CloseConnection();
+		return true;
+
+	}
+	
 }
