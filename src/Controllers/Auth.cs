@@ -56,6 +56,24 @@ namespace social_media_backend.Controllers
 				return Unauthorized();
 			}
 		}
+
+		 [HttpPost("logout")]
+        public IActionResult Logout([FromBody] string token)
+        {
+            try
+            {
+                var success = _authService.Logout(token);
+                
+                if (!success)
+                    return Unauthorized(new { message = "Invalid token or user not found." });
+                
+                return Ok(new { message = "Successfully logged out." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while logging out.", error = ex.Message });
+            }
+        }
 	}
     
 }
