@@ -31,14 +31,14 @@ namespace social_media_backend.src.Services
             DatabaseService.CloseConnection();
             return (null, null);
         }
-        private static bool DoesUserExistByUsername(string username)
+        public bool DoesUserExistByUsername(string username)
         {
             using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE username = @username", DatabaseService.Connection);
             command.Parameters.AddWithValue("@username", username);
             var result = command.ExecuteScalar();
             return Convert.ToInt32(result) > 0;
         }
-        private static bool DoesUserExistByEmail(string email)
+        public bool DoesUserExistByEmail(string email)
         {
             using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE email = @email", DatabaseService.Connection);
             command.Parameters.AddWithValue("@email", email);
