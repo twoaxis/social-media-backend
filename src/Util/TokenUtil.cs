@@ -31,4 +31,29 @@ public static class TokenUtil
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
+	public static ClaimsPrincipal ValidateToken(string token)
+	{
+		var tokenHandler = new JwtSecurityTokenHandler();
+		var key = Encoding.UTF8.GetBytes(_secret);
+
+		var validationParameters = new TokenValidationParameters
+		{
+			ValidateIssuer = true,
+			ValidIssuer = "twoaxis.xyz",
+			ValidateAudience = false, // Set to true if you add an audience
+			ValidateLifetime = true, // Checks for expiration
+			ValidateIssuerSigningKey = true,
+			IssuerSigningKey = new SymmetricSecurityKey(key)
+		};
+
+		var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+    
+		if (validatedToken is JwtSecurityToken jwtToken &&
+		    jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+		{
+			return principal; 
+		}
+
+		throw new SecurityTokenException("Invalid token");
+	}
 }
