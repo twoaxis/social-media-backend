@@ -6,6 +6,10 @@ namespace social_media_backend.src.Services
 {
     public class UserService
     {
+        /*
+         * TODO: Should have a model created for it.
+         * - Create a model that represents a full user called `UserProfile`.
+         */
         public (string UserName, string Name) GetUserProfile(string username)
         {
             DatabaseService.OpenConnection();
