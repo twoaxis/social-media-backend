@@ -57,5 +57,33 @@ namespace social_media_backend.src.Services
             var result = command.ExecuteScalar();
             return Convert.ToInt32(result) > 0;
         }
+
+        public bool FollowUser(int followerId, int followingId)
+        {
+            DatabaseService.OpenConnection();
+
+            using (var command = new MySqlCommand("INSERT IGNORE INTO follows (follower_id, following_id) VALUES (@followerId, @followingId)", DatabaseService.Connection))
+            {
+                command.Parameters.AddWithValue("@followerId", followerId);
+                command.Parameters.AddWithValue("@followingId", followingId);
+                int result = command.ExecuteNonQuery();
+
+                DatabaseService.CloseConnection();
+                return result > 0;
+            }
+        }
+
+        public int GetUserIdByUsername(string username)
+        {
+            using (var command = new MySqlCommand("SELECT id FROM users WHERE username = @username", DatabaseService.Connection))
+            {
+                command.Parameters.AddWithValue("@username", username);
+                var result = command.ExecuteScalar();
+                if (result != null)
+                    return Convert.ToInt32(result);
+
+                throw new UserNotFoundException();
+            }
+        }
     }
 }

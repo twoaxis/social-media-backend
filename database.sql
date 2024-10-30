@@ -16,3 +16,10 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE follows (
+    follower_id INT NOT NULL,
+    following_id INT NOT NULL,
+    FOREIGN KEY (follower_id) REFERENCES users(id),
+    FOREIGN KEY (following_id) REFERENCES users(id),
+    PRIMARY KEY (follower_id, following_id)
+);
