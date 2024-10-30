@@ -1,9 +1,12 @@
 [Oo]bj/
 [Bb]in/
 
+.vs/
 .vscode/
 .idea/
 .vs/
+
+Folder.DotSettings.user
 
 .env
 .env.development
