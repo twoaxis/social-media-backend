@@ -3,6 +3,8 @@ using social_media_backend.Exceptions;
 using social_media_backend.Exceptions.Auth;
 using social_media_backend.src.Services;
 using social_media_backend.Util;
+using System.IdentityModel.Tokens.Jwt;
+using social_media_backend.src.Exceptions;
 
 namespace social_media_backend.Services;
 
@@ -72,4 +74,22 @@ public class AuthService
 		}
 
 	}
+
+
+	public void Logout(string token){
+		DatabaseService.OpenConnection();
+		try
+		{
+			using var command = new MySqlCommand("INSERT INTO revoked_tokens (token) VALUES (@token)",DatabaseService.Connection);
+			
+			command.Parameters.AddWithValue("@token", token);
+			command.ExecuteNonQuery();
+		}
+		finally
+		{
+			DatabaseService.CloseConnection();
+		}
+
+	}
+	
 }

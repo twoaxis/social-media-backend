@@ -31,7 +31,7 @@ public static class TokenUtil
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
-	public static ClaimsPrincipal ValidateToken(string token)
+	public static int ValidateToken(string token)
 	{
 		var tokenHandler = new JwtSecurityTokenHandler();
 		var key = Encoding.UTF8.GetBytes(_secret);
@@ -51,7 +51,8 @@ public static class TokenUtil
 		if (validatedToken is JwtSecurityToken jwtToken &&
 		    jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
 		{
-			return principal; 
+			int.TryParse(principal.Claims.ToArray()[0].Value, out var result);
+			return result; 
 		}
 
 		throw new SecurityTokenException("Invalid token");

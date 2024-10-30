@@ -23,11 +23,8 @@ namespace social_media_backend.src.Controllers
 
 			try
 			{
-				var creds = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
-
-				if (!int.TryParse(creds.Claims.ToArray()[0].Value, out var userId))
-					return Problem();
-					
+				var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+				
 				var postId = _postService.CreatePost(userId, postCreationModel.content);
 			
 				return Ok(new

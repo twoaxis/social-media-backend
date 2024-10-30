@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using social_media_backend.Exceptions;
 using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.Auth;
 using social_media_backend.Services;
+using social_media_backend.src.Exceptions;
+using social_media_backend.Util;
 
 namespace social_media_backend.Controllers
 {
@@ -56,6 +59,24 @@ namespace social_media_backend.Controllers
 				return Unauthorized();
 			}
 		}
+
+		 [HttpPost("logout")]
+        public IActionResult Logout([FromBody] string token)
+        {
+	        
+            try
+            {
+	            TokenUtil.ValidateToken(token);
+
+                _authService.Logout(token);
+                
+                return Ok();
+            }
+            catch (SecurityTokenException e)
+            {
+	            return Unauthorized();
+            }
+        }
 	}
     
 }
