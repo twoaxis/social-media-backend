@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using social_media_backend.Exceptions;
 using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.Auth;
 using social_media_backend.Services;
+using social_media_backend.src.Exceptions;
+using social_media_backend.Util;
 
 namespace social_media_backend.Controllers
 {
@@ -60,18 +63,18 @@ namespace social_media_backend.Controllers
 		 [HttpPost("logout")]
         public IActionResult Logout([FromBody] string token)
         {
+	        
             try
             {
-                var success = _authService.Logout(token);
+	            TokenUtil.ValidateToken(token);
+
+                _authService.Logout(token);
                 
-                if (!success)
-                    return Unauthorized(new { message = "Invalid token or user not found." });
-                
-                return Ok(new { message = "Successfully logged out." });
+                return Ok();
             }
-            catch (Exception ex)
+            catch (SecurityTokenException e)
             {
-                return StatusCode(500, new { message = "An error occurred while logging out.", error = ex.Message });
+	            return Unauthorized();
             }
         }
 	}

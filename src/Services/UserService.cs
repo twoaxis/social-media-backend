@@ -49,5 +49,13 @@ namespace social_media_backend.src.Services
             var result = command.ExecuteScalar();
             return Convert.ToInt32(result) > 0;
         }
+        
+        public bool DoesUserExistById(int id)
+        {
+            using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE id = @id", DatabaseService.Connection);
+            command.Parameters.AddWithValue("@id", id);
+            var result = command.ExecuteScalar();
+            return Convert.ToInt32(result) > 0;
+        }
     }
 }
