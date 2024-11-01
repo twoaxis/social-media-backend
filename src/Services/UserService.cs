@@ -117,5 +117,36 @@ namespace social_media_backend.src.Services
             return followers;
         }
 
+        public List<Dictionary<string, object>> GetFollowing(string username)
+        {
+            DatabaseService.OpenConnection();
+            int userId = GetUserIdByUsername(username);
+
+            var following = new List<Dictionary<string, object>>();
+
+            using (var command = new MySqlCommand("SELECT u.id, u.username, u.name FROM follows f JOIN users u ON f.following_id = u.id WHERE f.follower_id = @userId", DatabaseService.Connection))
+            {
+                command.Parameters.AddWithValue("@userId", userId);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var user = new Dictionary<string, object>
+                        {
+                            { "id", reader.GetInt32("id") },
+                            { "Username", reader.GetString("username") },
+                            { "Name", reader.GetString("name") }
+                        };
+                        following.Add(user);
+                    }
+                }
+            }
+
+            DatabaseService.CloseConnection();
+            return following;
+        }
+
+
     }
 }

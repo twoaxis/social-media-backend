@@ -77,5 +77,20 @@ namespace social_media_backend.src.Controllers
             }
         }
 
+        [HttpGet("{username}/following")]
+        public IActionResult GetFollowing(string username)
+        {
+            try
+            {
+                var following = _userService.GetFollowing(username);
+                return Ok(following);
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+        }
+
+
     }
 }
