@@ -61,15 +61,20 @@ namespace social_media_backend.src.Services
         public bool FollowUser(int followerId, int followingId)
         {
             DatabaseService.OpenConnection();
-
-            using (var command = new MySqlCommand("INSERT IGNORE INTO follows (follower_id, following_id) VALUES (@followerId, @followingId)", DatabaseService.Connection))
+            try
             {
-                command.Parameters.AddWithValue("@followerId", followerId);
-                command.Parameters.AddWithValue("@followingId", followingId);
-                int result = command.ExecuteNonQuery();
+                using (var command = new MySqlCommand("INSERT IGNORE INTO follows (follower_id, following_id) VALUES (@followerId, @followingId)", DatabaseService.Connection))
+                {
+                    command.Parameters.AddWithValue("@followerId", followerId);
+                    command.Parameters.AddWithValue("@followingId", followingId);
+                    int result = command.ExecuteNonQuery();
 
+                    return result > 0;
+                }
+            }
+            finally
+            {
                 DatabaseService.CloseConnection();
-                return result > 0;
             }
         }
 
