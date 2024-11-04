@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using social_media_backend.Models.User;
 using social_media_backend.src.Services;
 using social_media_backend.src.Exceptions;
 using social_media_backend.Services;
@@ -18,9 +19,9 @@ namespace social_media_backend.src.Controllers
         {
             try
             {
-                var userProfile = _userService.GetUserProfile(username);
+                UserProfile userProfile = _userService.GetUserProfile(username);
 
-                return Ok(new { username = userProfile.UserName, name = userProfile.Name }); 
+                return Ok(userProfile); 
             }
             catch (UserNotFoundException)
             {

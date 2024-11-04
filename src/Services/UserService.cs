@@ -1,4 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
+using social_media_backend.Models.Post;
+using social_media_backend.Models.User;
 using social_media_backend.Services;
 using social_media_backend.src.Exceptions;
 
@@ -6,34 +8,44 @@ namespace social_media_backend.src.Services
 {
     public class UserService
     {
-        /*
-         * TODO: Should have a model created for it.
-         * - Create a model that represents a full user called `UserProfile`.
-         */
-        public (string UserName, string Name) GetUserProfile(string username)
+        private readonly PostService _postService = new();
+        
+        public UserProfile GetUserProfile(string username)
         {
+            UserProfile profile;
             DatabaseService.OpenConnection();
 
-            if (!DoesUserExistByUsername(username))
+            try
             {
-                DatabaseService.CloseConnection();
-                throw new UserNotFoundException();
-            }
+                if (!DoesUserExistByUsername(username))
+                {
+                    throw new UserNotFoundException();
+                }
 
-            using (var command = new MySqlCommand("SELECT username, name FROM users WHERE username = @username", DatabaseService.Connection))
-            {
+                using var command = new MySqlCommand("SELECT id, username, name FROM users WHERE username = @username",
+                    DatabaseService.Connection);
                 command.Parameters.AddWithValue("@username", username);
 
-                using (var reader = command.ExecuteReader())
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        return (reader.GetString("username"), reader.GetString("name"));
-                    }
+                    profile = new UserProfile(
+                        reader.GetInt32("id"),
+                        reader.GetString("username"),
+                        reader.GetString("name"),
+                        []
+                    );
+                    reader.Close();
                 }
+                else throw new UserNotFoundException();
+
+                profile.posts = _postService.GetAllPosts(profile.id);
             }
-            DatabaseService.CloseConnection();
-            return (null, null);
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
+            return profile;
         }
         public bool DoesUserExistByUsername(string username)
         {
