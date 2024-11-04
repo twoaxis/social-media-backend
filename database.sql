@@ -16,3 +16,8 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE follows (
+    follower_id INT(11) NOT NULL REFERENCES users(id),
+    following_id INT(11) NOT NULL REFERENCES users(id),
+    UNIQUE (follower_id, following_id)
+);
