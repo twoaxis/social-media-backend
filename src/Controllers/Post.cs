@@ -37,5 +37,25 @@ namespace social_media_backend.src.Controllers
 				return Unauthorized();
 			}
 		}
+
+		[HttpGet]
+		public IActionResult GetHomePosts()
+		{
+			if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+			if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+			try
+			{
+				var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+				
+				var posts = _postService.GetHomePagePosts(userId);
+
+				return Ok(posts);
+			}
+			catch (SecurityTokenException e)
+			{
+				return Unauthorized();
+			}
+		}
 	}
 }
