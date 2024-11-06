@@ -58,4 +58,37 @@ public class PostService
 		
 		return posts.ToArray();
 	}
+
+	public Post[] GetHomePagePosts(int userId)
+	{
+		List<Post> posts = [];
+		DatabaseService.OpenConnection();
+
+		try
+		{
+			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name FROM posts JOIN users ON posts.author = users.id JOIN follows ON follows.following_id = users.id WHERE follows.follower_id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
+			command.Parameters.AddWithValue("@id", userId);
+			
+			using var reader = command.ExecuteReader();
+			while (reader.Read())
+			{
+				posts.Add(new Post(
+					reader.GetInt32("id"),
+					reader.GetString("content"),
+					reader.GetDateTime("createdAt"),
+					new PostAuthor(
+						reader.GetInt32("uid"),
+						reader.GetString("username"),
+						reader.GetString("name")
+					)
+				));
+			}
+		}
+		finally
+		{
+			DatabaseService.CloseConnection();
+		}
+		
+		return posts.ToArray();
+	}
 }
