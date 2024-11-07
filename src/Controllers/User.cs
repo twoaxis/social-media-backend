@@ -67,6 +67,38 @@ namespace social_media_backend.src.Controllers
             }
         }
 
+        [HttpPost("{username}/unfollow")]
+        public IActionResult UnfollowUser(string username)
+        {
+            DatabaseService.OpenConnection();
+
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+            try
+            {
+                var followerId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+                var followingId = _userService.GetUserIdByUsername(username);
+
+                if (followerId == followingId)
+                    return BadRequest(); // Cannot unfollow yourself
+
+                bool success = _userService.UnfollowUser(followerId, followingId);
+                if (!success)
+                    return NotFound(); // You are not following this user.
+
+                return Ok(); // Successfully unfollowed the user
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
+        }
+
         [HttpGet("{username}/followers")]
         public IActionResult GetFollowers(string username)
         {

@@ -172,6 +172,25 @@ namespace social_media_backend.src.Services
             return following;
         }
 
-       
+        public bool UnfollowUser(int followerId, int followingId)
+        {
+            DatabaseService.OpenConnection();
+            try
+            {
+                using (var command = new MySqlCommand("DELETE FROM follows WHERE follower_id = @followerId AND following_id = @followingId", DatabaseService.Connection))
+                {
+                    command.Parameters.AddWithValue("@followerId", followerId);
+                    command.Parameters.AddWithValue("@followingId", followingId);
+                    int result = command.ExecuteNonQuery();
+                    return result > 0;
+                }
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
+        }
+
+
     }
 }
