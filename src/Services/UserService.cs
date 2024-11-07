@@ -69,6 +69,49 @@ namespace social_media_backend.src.Services
             return Convert.ToInt32(result) > 0;
         }
         
+
+
+        public bool EditUserData(string? email=null , string? username=null , string? password=null , string? bio=null )
+        {
+            DatabaseService.OpenConnection();
+
+            if (username != null){
+                if (DoesUserExistByUsername(username)){
+                        return false;
+                }
+                else {
+                    using var command = new MySqlCommand("UPDATE users SET username=@username WHERE email = @email", DatabaseService.Connection);
+                    command.Parameters.AddWithValue("@email", email);
+                    command.Parameters.AddWithValue("@username", username);
+                    int result = command.ExecuteNonQuery();
+                    return result > 0;
+
+            }
+            }
+
+            if (password != null){
+                var hashed_password = HashUtil.GenerateSHA256Hash(password);
+                using var command = new MySqlCommand("UPDATE users SET password=@password WHERE email = @email", DatabaseService.Connection);
+                command.Parameters.AddWithValue("@password", hashed_password);
+                command.Parameters.AddWithValue("@email", email);
+                int result = command.ExecuteNonQuery();
+                return result > 0;
+            }
+
+            if (bio != null){
+                using var command = new MySqlCommand("UPDATE users SET bio=@bio WHERE email = @email", DatabaseService.Connection);
+                command.Parameters.AddWithValue("@bio", bio);
+                command.Parameters.AddWithValue("@email", email);
+                int result = command.ExecuteNonQuery();
+                return result > 0;
+            }
+	    DatabaseService.CloseConnection();
+	    return false;
+        }
+
+
+
+
         public bool DoesUserExistById(int id)
         {
             using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE id = @id", DatabaseService.Connection);

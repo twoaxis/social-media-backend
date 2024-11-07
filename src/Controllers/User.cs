@@ -130,5 +130,38 @@ namespace social_media_backend.src.Controllers
         }
 
 
+        [HttpPost("edit")]
+        public IActionResult Edit_User_Data([FromBody] UserData userData)
+        {
+	    
+            if (userData.username == null && userData.bio == null && userData.password == null ) return BadRequest("no params sended.");
+
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+	    if (TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]) < 1) return BadRequest("token is not valid.");
+            try
+            {
+                
+                var username = userData.username;
+                var bio = userData.bio;
+                var password = userData.password;
+		
+                var token = authorizationHeader.ToString().Split(" ")[1];
+                var email = TokenUtil.GetEmailFromJwt(token);
+                bool result = _userService.EditUserData(email,username,password,bio);
+                if (result) {
+                    return Ok("Data Modified Successfuly ..");
+                }else {
+                    return Conflict("User Already taken");
+                }
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
+        }
+
+
     }
 }

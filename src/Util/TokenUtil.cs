@@ -31,6 +31,26 @@ public static class TokenUtil
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
+
+
+public static string GetEmailFromJwt(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        if (handler.CanReadToken(token))
+        {
+            var jwtToken = handler.ReadJwtToken(token);
+            var emailClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "email");
+            return emailClaim?.Value;
+        }
+        else
+        {
+            throw new ArgumentException("Invalid token format");
+        }
+    }
+
+
+
+
 	public static int ValidateToken(string token)
 	{
 		var tokenHandler = new JwtSecurityTokenHandler();
