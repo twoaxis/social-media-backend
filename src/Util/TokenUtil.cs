@@ -31,6 +31,7 @@ public static class TokenUtil
 
 		return new JwtSecurityTokenHandler().WriteToken(token);
 	}
+	
 	public static int ValidateToken(string token)
 	{
 		var tokenHandler = new JwtSecurityTokenHandler();

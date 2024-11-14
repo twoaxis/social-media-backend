@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using social_media_backend.Exceptions;
 using social_media_backend.Models.User;
 using social_media_backend.src.Services;
 using social_media_backend.src.Exceptions;
@@ -126,6 +128,43 @@ namespace social_media_backend.src.Controllers
             catch (UserNotFoundException)
             {
                 return NotFound(new { message = "User not found." });
+            }
+        }
+
+
+        [HttpPost("edit")]
+        public IActionResult EditProfile([FromBody] UpdateUserModel updateUserModel)
+        {
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+            
+            try
+            {
+
+                var id = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+                
+                var username = updateUserModel.username;
+                var bio = updateUserModel.bio;
+		
+                _userService.EditUserData(id, username, bio);
+
+                return Ok();
+
+            }
+            catch (UserExistsException)
+            {
+                return Conflict(new
+                {
+                    code = "auth/username-taken"
+                });
+            }
+            catch (SecurityTokenException)
+            {
+                return Unauthorized();
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
             }
         }
 
