@@ -3,6 +3,7 @@ using social_media_backend.Models.Post;
 using social_media_backend.Models.User;
 using social_media_backend.Services;
 using social_media_backend.src.Exceptions;
+using social_media_backend.Util;
 
 namespace social_media_backend.src.Services
 {
@@ -10,21 +11,24 @@ namespace social_media_backend.src.Services
     {
         private readonly PostService _postService = new();
         
-        public UserProfile GetUserProfile(string username)
+        public UserProfile GetUserProfile(string username, int followingId)
         {
             UserProfile profile;
             DatabaseService.OpenConnection();
 
             try
             {
+                int followerId = GetUserIdByUsername(username);
                 if (!DoesUserExistByUsername(username))
                 {
                     throw new UserNotFoundException();
                 }
 
-                using var command = new MySqlCommand("SELECT u.id, u.username, u.name, (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) AS following_count, (SELECT COUNT(*) FROM follows WHERE following_id = u.id) AS follower_count FROM users u WHERE u.username = @username;",
+                using var command = new MySqlCommand(@"SELECT u.id, u.username, u.name, (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) AS following_count, (SELECT COUNT(*) FROM follows WHERE following_id = u.id) AS follower_count,(SELECT COUNT(*) FROM follows WHERE follower_id = @followerId AND following_id = @followingId) AS isFollowing FROM users u WHERE u.username = @username;",
                     DatabaseService.Connection);
                 command.Parameters.AddWithValue("@username", username);
+                command.Parameters.AddWithValue("@followingId", followingId);
+                command.Parameters.AddWithValue("@followerId", followerId);
 
                 using var reader = command.ExecuteReader();
                 if (reader.Read())
@@ -35,6 +39,7 @@ namespace social_media_backend.src.Services
                         reader.GetString("name"),
                         reader.GetInt32("follower_count"),
                         reader.GetInt32("following_count"),
+                        reader.GetBoolean("isFollowing"),
                         []
                     );
                     reader.Close();
@@ -164,6 +169,25 @@ namespace social_media_backend.src.Services
 
             DatabaseService.CloseConnection();
             return following;
+        }
+
+        public bool UnfollowUser(int followerId, int followingId)
+        {
+            DatabaseService.OpenConnection();
+            try
+            {
+                using (var command = new MySqlCommand("DELETE FROM follows WHERE follower_id = @followerId AND following_id = @followingId", DatabaseService.Connection))
+                {
+                    command.Parameters.AddWithValue("@followerId", followerId);
+                    command.Parameters.AddWithValue("@followingId", followingId);
+                    int result = command.ExecuteNonQuery();
+                    return result > 0;
+                }
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
         }
 
 

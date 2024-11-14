@@ -17,9 +17,14 @@ namespace social_media_backend.src.Controllers
         [HttpGet("{username}")]
         public IActionResult GetUser(string username)
         {
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+            
             try
             {
-                UserProfile userProfile = _userService.GetUserProfile(username);
+                var uid = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+                
+                UserProfile userProfile = _userService.GetUserProfile(username, uid);
 
                 return Ok(userProfile); 
             }
@@ -53,6 +58,38 @@ namespace social_media_backend.src.Controllers
                     return Conflict(); //Already following the user
 
                 return Ok(); //Successfully followed the user
+            }
+            catch (UserNotFoundException)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
+        }
+
+        [HttpPost("{username}/unfollow")]
+        public IActionResult UnfollowUser(string username)
+        {
+            DatabaseService.OpenConnection();
+
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+            try
+            {
+                var followerId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+                var followingId = _userService.GetUserIdByUsername(username);
+
+                if (followerId == followingId)
+                    return BadRequest(); // Cannot unfollow yourself
+
+                bool success = _userService.UnfollowUser(followerId, followingId);
+                if (!success)
+                    return NotFound(); // You are not following this user.
+
+                return Ok(); // Successfully unfollowed the user
             }
             catch (UserNotFoundException)
             {
