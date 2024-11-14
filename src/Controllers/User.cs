@@ -19,10 +19,12 @@ namespace social_media_backend.src.Controllers
         {
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
-            var token = authorizationHeader.ToString().Split(" ")[1];
+            
             try
             {
-                UserProfile userProfile = _userService.GetUserProfile(username,token);
+                var uid = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+                
+                UserProfile userProfile = _userService.GetUserProfile(username, uid);
 
                 return Ok(userProfile); 
             }

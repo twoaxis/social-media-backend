@@ -11,14 +11,13 @@ namespace social_media_backend.src.Services
     {
         private readonly PostService _postService = new();
         
-        public UserProfile GetUserProfile(string username,string token)
+        public UserProfile GetUserProfile(string username, int followingId)
         {
             UserProfile profile;
             DatabaseService.OpenConnection();
 
             try
             {
-                int followingId = TokenUtil.ValidateToken(token);
                 int followerId = GetUserIdByUsername(username);
                 if (!DoesUserExistByUsername(username))
                 {
