@@ -1,4 +1,5 @@
 ﻿using MySql.Data.MySqlClient;
+using social_media_backend.Exceptions;
 using social_media_backend.Models.Post;
 using social_media_backend.Models.User;
 using social_media_backend.Services;
@@ -24,7 +25,7 @@ namespace social_media_backend.src.Services
                     throw new UserNotFoundException();
                 }
 
-                using var command = new MySqlCommand(@"SELECT u.id, u.username, u.name, (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) AS following_count, (SELECT COUNT(*) FROM follows WHERE following_id = u.id) AS follower_count,(SELECT COUNT(*) FROM follows WHERE follower_id = @followerId AND following_id = @followingId) AS isFollowing FROM users u WHERE u.username = @username;",
+                using var command = new MySqlCommand(@"SELECT u.id, u.username, u.name, u.bio, (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) AS following_count, (SELECT COUNT(*) FROM follows WHERE following_id = u.id) AS follower_count,(SELECT COUNT(*) FROM follows WHERE follower_id = @followerId AND following_id = @followingId) AS isFollowing FROM users u WHERE u.username = @username;",
                     DatabaseService.Connection);
                 command.Parameters.AddWithValue("@username", username);
                 command.Parameters.AddWithValue("@followingId", followingId);
@@ -37,6 +38,7 @@ namespace social_media_backend.src.Services
                         reader.GetInt32("id"),
                         reader.GetString("username"),
                         reader.GetString("name"),
+                        reader.IsDBNull(reader.GetOrdinal("bio")) ? null : reader.GetString("bio"),
                         reader.GetInt32("follower_count"),
                         reader.GetInt32("following_count"),
                         reader.GetBoolean("isFollowing"),
@@ -71,47 +73,29 @@ namespace social_media_backend.src.Services
         
 
 
-        public bool EditUserData(string? email=null , string? username=null , string? password=null , string? bio=null )
+        public void EditUserData(int id, string? username = null, string? bio = null)
         {
             DatabaseService.OpenConnection();
 
-            if (username != null){
-                if (DoesUserExistByUsername(username)){
-                        return false;
-                }
-                else {
-                    using var command = new MySqlCommand("UPDATE users SET username=@username WHERE email = @email", DatabaseService.Connection);
-                    command.Parameters.AddWithValue("@email", email);
-                    command.Parameters.AddWithValue("@username", username);
-                    int result = command.ExecuteNonQuery();
-                    return result > 0;
-
-            }
+            if (username != null && DoesUserExistByUsername(username)) { 
+                throw new UserExistsException();
             }
 
-            if (password != null){
-                var hashed_password = HashUtil.GenerateSHA256Hash(password);
-                using var command = new MySqlCommand("UPDATE users SET password=@password WHERE email = @email", DatabaseService.Connection);
-                command.Parameters.AddWithValue("@password", hashed_password);
-                command.Parameters.AddWithValue("@email", email);
-                int result = command.ExecuteNonQuery();
-                return result > 0;
-            }
-
-            if (bio != null){
-                using var command = new MySqlCommand("UPDATE users SET bio=@bio WHERE email = @email", DatabaseService.Connection);
+            try
+            {
+                using var command = new MySqlCommand("UPDATE users SET username=COALESCE(@username, username), bio=@bio WHERE id = @id", DatabaseService.Connection);
+                command.Parameters.AddWithValue("@id", id);
+                
+                command.Parameters.AddWithValue("@username", username);
                 command.Parameters.AddWithValue("@bio", bio);
-                command.Parameters.AddWithValue("@email", email);
-                int result = command.ExecuteNonQuery();
-                return result > 0;
+                command.ExecuteNonQuery();
             }
-	    DatabaseService.CloseConnection();
-	    return false;
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
         }
-
-
-
-
+        
         public bool DoesUserExistById(int id)
         {
             using var command = new MySqlCommand("SELECT COUNT(*) FROM users WHERE id = @id", DatabaseService.Connection);

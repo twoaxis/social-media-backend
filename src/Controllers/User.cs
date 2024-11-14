@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using social_media_backend.Exceptions;
 using social_media_backend.Models.User;
 using social_media_backend.src.Services;
 using social_media_backend.src.Exceptions;
@@ -131,30 +133,34 @@ namespace social_media_backend.src.Controllers
 
 
         [HttpPost("edit")]
-        public IActionResult Edit_User_Data([FromBody] UserData userData)
+        public IActionResult EditProfile([FromBody] UpdateUserModel updateUserModel)
         {
-	    
-            if (userData.username == null && userData.bio == null && userData.password == null ) return BadRequest("no params sended.");
-
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
-
-	    if (TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]) < 1) return BadRequest("token is not valid.");
+            
             try
             {
+
+                var id = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
                 
-                var username = userData.username;
-                var bio = userData.bio;
-                var password = userData.password;
+                var username = updateUserModel.username;
+                var bio = updateUserModel.bio;
 		
-                var token = authorizationHeader.ToString().Split(" ")[1];
-                var email = TokenUtil.GetEmailFromJwt(token);
-                bool result = _userService.EditUserData(email,username,password,bio);
-                if (result) {
-                    return Ok("Data Modified Successfuly ..");
-                }else {
-                    return Conflict("User Already taken");
-                }
+                _userService.EditUserData(id, username, bio);
+
+                return Ok();
+
+            }
+            catch (UserExistsException)
+            {
+                return Conflict(new
+                {
+                    code = "auth/username-taken"
+                });
+            }
+            catch (SecurityTokenException)
+            {
+                return Unauthorized();
             }
             finally
             {
