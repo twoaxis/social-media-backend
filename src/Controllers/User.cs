@@ -168,6 +168,13 @@ namespace social_media_backend.src.Controllers
             }
         }
 
+        [HttpGet("search")]
+        public IActionResult SearchUsers([FromQuery] string query)
+        {
+            var users = _userService.SearchUsers(query);
+            
+            return Ok(users);
+        }
 
     }
 }
