@@ -217,6 +217,33 @@ namespace social_media_backend.src.Services
             }
         }
 
+        public UserSearchModel[] SearchUsers(string searchQuery)
+        {
+            List<UserSearchModel> users = [];
+            DatabaseService.OpenConnection();
 
+            try
+            {
+                using var command = new MySqlCommand("SELECT id, username, name FROM users WHERE name LIKE @query OR username LIKE @query",
+                    DatabaseService.Connection);
+                command.Parameters.AddWithValue("@query", $"%{searchQuery}%");
+
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    users.Add(new UserSearchModel(
+                        reader.GetInt32("id"),
+                        reader.GetString("username"),
+                        reader.GetString("name")
+                    ));
+                }
+            }
+            finally
+            {
+                DatabaseService.CloseConnection();
+            }
+            
+            return users.ToArray();
+        }
     }
 }
