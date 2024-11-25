@@ -28,3 +28,11 @@ CREATE TABLE post_likes (
     post_id INT(11) NOT NULL REFERENCES posts(id),
     UNIQUE (user_id, post_id)
 );
+
+CREATE TABLE post_comments (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) NOT NULL REFERENCES users(id),
+    post_id INT(11) NOT NULL REFERENCES posts(id),
+    content TEXT NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

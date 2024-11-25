@@ -83,5 +83,27 @@ namespace social_media_backend.src.Controllers
             }
         }
 
+        [HttpPut("{postId}/comment")]
+        public IActionResult AddComment(int postId, [FromBody] CommentCreationModel commentModel)
+        {
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+            try
+            {
+                var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+
+                var commentId = _postService.AddComment(userId, postId, commentModel.Content);
+
+                return Ok(new
+                {
+                    commentId
+                });
+            }
+            catch (SecurityTokenException)
+            {
+                return Unauthorized();
+            }
+        }
     }
 }

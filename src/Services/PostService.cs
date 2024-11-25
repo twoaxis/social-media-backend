@@ -114,4 +114,26 @@ public class PostService
             DatabaseService.CloseConnection();
         }
     }
+    public int AddComment(int userId, int postId, string content)
+    {
+        try
+        {
+            DatabaseService.OpenConnection();
+
+            using var command = new MySqlCommand("INSERT INTO post_comments (user_id, post_id, content) VALUES (@userId, @postId, @content); SELECT LAST_INSERT_ID();",
+                DatabaseService.Connection);
+            command.Parameters.AddWithValue("@userId", userId);
+            command.Parameters.AddWithValue("@postId", postId);
+            command.Parameters.AddWithValue("@content", content);
+
+            var result = command.ExecuteScalar();
+            var commentId = Convert.ToInt32(result);
+            return commentId;
+        }
+        finally
+        {
+            DatabaseService.CloseConnection();
+        }
+    }
+
 }
