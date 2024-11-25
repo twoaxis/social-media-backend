@@ -57,5 +57,31 @@ namespace social_media_backend.src.Controllers
 				return Unauthorized();
 			}
 		}
-	}
+
+
+        [HttpPost("{postId}/like")]
+        public IActionResult LikePost(int postId)
+        {
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+            try
+            {
+                var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+
+                _postService.LikePost(userId, postId);
+
+                return Ok();
+            }
+            catch (SecurityTokenException)
+            {
+                return Unauthorized();
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest();
+            }
+        }
+
+    }
 }

@@ -91,4 +91,27 @@ public class PostService
 		
 		return posts.ToArray();
 	}
+
+    public void LikePost(int userId, int postId)
+    {
+        try
+        {
+            DatabaseService.OpenConnection();
+
+            using var command = new MySqlCommand("INSERT INTO post_likes (user_id, post_id) VALUES (@userId, @postId);",
+                DatabaseService.Connection);
+            command.Parameters.AddWithValue("@userId", userId);
+            command.Parameters.AddWithValue("@postId", postId);
+
+            command.ExecuteNonQuery();
+        }
+        catch (MySqlException e) when (e.Number == 1062) // Duplicate entry error
+        {
+            throw new InvalidOperationException(); // "User already liked this post."
+        }
+        finally
+        {
+            DatabaseService.CloseConnection();
+        }
+    }
 }

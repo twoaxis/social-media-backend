@@ -22,3 +22,9 @@ CREATE TABLE follows (
     following_id INT(11) NOT NULL REFERENCES users(id),
     UNIQUE (follower_id, following_id)
 );
+CREATE TABLE post_likes (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) NOT NULL REFERENCES users(id),
+    post_id INT(11) NOT NULL REFERENCES posts(id),
+    UNIQUE (user_id, post_id)
+);
