@@ -4,13 +4,18 @@ CREATE TABLE users (
     name VARCHAR(2048) NOT NULL,
     bio VARCHAR(2048),
     email VARCHAR(1024) NOT NULL,
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     password VARCHAR(4096) NOT NULL
 );
 
 CREATE TABLE revoked_tokens (
     token VARCHAR(1024) NOT NULL
 );
-
+CREATE TABLE email_verification_codes(
+    uid INT(11) NOT NULL REFERENCES users(id),
+    session_id VARCHAR(1024) UNIQUE NOT NULL,
+    code VARCHAR(6) NOT NULL
+);
 CREATE TABLE posts (
     id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     author INT(11) NOT NULL REFERENCES users(id),
