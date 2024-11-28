@@ -31,6 +31,10 @@ namespace social_media_backend.src.Controllers
 
                 return Ok(userProfile); 
             }
+            catch (InvalidCredentialsException)
+            {
+                return Unauthorized();
+            }
             catch (UserNotFoundException)
             {
                 return NotFound();
@@ -61,6 +65,10 @@ namespace social_media_backend.src.Controllers
                     return Conflict(); //Already following the user
 
                 return Ok(); //Successfully followed the user
+            }
+            catch (InvalidTokenException)
+            {
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
@@ -93,6 +101,10 @@ namespace social_media_backend.src.Controllers
                     return NotFound(); // You are not following this user.
 
                 return Ok(); // Successfully unfollowed the user
+            }
+            catch (InvalidTokenException)
+            {
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
