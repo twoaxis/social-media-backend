@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.Post;
 using social_media_backend.Services;
 using social_media_backend.Util;
@@ -32,7 +33,7 @@ namespace social_media_backend.src.Controllers
 					postId
 				});
 			}
-			catch (SecurityTokenException e)
+			catch (InvalidTokenException e)
 			{
 				return Unauthorized();
 			}
@@ -52,7 +53,7 @@ namespace social_media_backend.src.Controllers
 
 				return Ok(posts);
 			}
-			catch (SecurityTokenException e)
+			catch (InvalidTokenException e)
 			{
 				return Unauthorized();
 			}

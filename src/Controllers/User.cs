@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using social_media_backend.Exceptions;
+using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.User;
 using social_media_backend.src.Services;
 using social_media_backend.src.Exceptions;
@@ -158,7 +159,7 @@ namespace social_media_backend.src.Controllers
                     code = "auth/username-taken"
                 });
             }
-            catch (SecurityTokenException)
+            catch (InvalidTokenException)
             {
                 return Unauthorized();
             }
