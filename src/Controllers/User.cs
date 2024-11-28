@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using social_media_backend.Exceptions;
+using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.User;
 using social_media_backend.src.Services;
 using social_media_backend.src.Exceptions;
@@ -29,6 +30,10 @@ namespace social_media_backend.src.Controllers
                 UserProfile userProfile = _userService.GetUserProfile(username, uid);
 
                 return Ok(userProfile); 
+            }
+            catch (InvalidCredentialsException)
+            {
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
@@ -61,6 +66,10 @@ namespace social_media_backend.src.Controllers
 
                 return Ok(); //Successfully followed the user
             }
+            catch (InvalidTokenException)
+            {
+                return Unauthorized();
+            }
             catch (UserNotFoundException)
             {
                 return NotFound(new { message = "User not found." });
@@ -92,6 +101,10 @@ namespace social_media_backend.src.Controllers
                     return NotFound(); // You are not following this user.
 
                 return Ok(); // Successfully unfollowed the user
+            }
+            catch (InvalidTokenException)
+            {
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
@@ -158,7 +171,7 @@ namespace social_media_backend.src.Controllers
                     code = "auth/username-taken"
                 });
             }
-            catch (SecurityTokenException)
+            catch (InvalidTokenException)
             {
                 return Unauthorized();
             }

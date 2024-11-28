@@ -104,7 +104,7 @@ namespace social_media_backend.Controllers
                 
                 return Ok();
             }
-            catch (SecurityTokenException e)
+            catch (InvalidTokenException)
             {
 	            return Unauthorized();
             }
