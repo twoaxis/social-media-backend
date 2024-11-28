@@ -94,13 +94,16 @@ namespace social_media_backend.Controllers
 		}
 
 		[HttpPost("logout")]
-        public IActionResult Logout([FromBody] string token)
+        public IActionResult Logout()
         {
+	        if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+	        if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+	        
             try
             {
-	            TokenUtil.ValidateToken(token);
+	            TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
 
-                _authService.Logout(token);
+                _authService.Logout(authorizationHeader.ToString().Split(" ")[1]);
                 
                 return Ok();
             }
