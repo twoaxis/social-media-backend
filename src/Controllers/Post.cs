@@ -79,7 +79,7 @@ namespace social_media_backend.src.Controllers
             }
             catch (InvalidOperationException)
             {
-                return BadRequest();
+                return Conflict();
             }
         }
 

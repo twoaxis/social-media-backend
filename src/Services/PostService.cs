@@ -33,13 +33,14 @@ public class PostService
 
 		try
 		{
-			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name FROM posts JOIN users ON posts.author = users.id WHERE users.id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
+			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name, (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likeCount, EXISTS (SELECT 1 FROM post_likes WHERE post_likes.post_id = posts.id AND post_likes.user_id = @userId) AS isLiked FROM posts JOIN users ON posts.author = users.id WHERE users.id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
 			command.Parameters.AddWithValue("@id", userId);
 			
 			using var reader = command.ExecuteReader();
 			while (reader.Read())
 			{
-				posts.Add(new Post(
+                int postId = reader.GetInt32("id");
+                posts.Add(new Post(
 					reader.GetInt32("id"),
 					reader.GetString("content"),
 					reader.GetDateTime("createdAt"),
@@ -47,8 +48,11 @@ public class PostService
 						reader.GetInt32("uid"),
 						reader.GetString("username"),
 						reader.GetString("name")
-					)
-				));
+                    ),
+                    reader.GetInt32("likeCount"),
+                    reader.GetBoolean("isLiked"),
+                    GetComments(postId) // Fetch comments for each post
+                ));
 			}
 		}
 		finally
@@ -66,13 +70,14 @@ public class PostService
 
 		try
 		{
-			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name FROM posts JOIN users ON posts.author = users.id JOIN follows ON follows.following_id = users.id WHERE follows.follower_id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
+			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name, (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likeCount, EXISTS (SELECT 1 FROM post_likes WHERE post_likes.post_id = posts.id AND post_likes.user_id = @id) AS isLiked FROM posts JOIN users ON posts.author = users.id JOIN follows ON follows.following_id = users.id WHERE follows.follower_id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
 			command.Parameters.AddWithValue("@id", userId);
 			
 			using var reader = command.ExecuteReader();
 			while (reader.Read())
 			{
-				posts.Add(new Post(
+                int postId = reader.GetInt32("id");
+                posts.Add(new Post(
 					reader.GetInt32("id"),
 					reader.GetString("content"),
 					reader.GetDateTime("createdAt"),
@@ -80,8 +85,11 @@ public class PostService
 						reader.GetInt32("uid"),
 						reader.GetString("username"),
 						reader.GetString("name")
-					)
-				));
+					),
+                    reader.GetInt32("likeCount"),
+					reader.GetBoolean("isLiked"),
+                    GetComments(postId) // Fetch comments for each post
+                ));
 			}
 		}
 		finally
@@ -134,6 +142,32 @@ public class PostService
         {
             DatabaseService.CloseConnection();
         }
+    }
+
+
+    private List<Comment> GetComments(int postId)
+    {
+        List<Comment> comments = new();
+        using var commentCommand = new MySqlCommand(@"SELECT post_comments.id, post_comments.content, post_comments.createdAt, users.id AS uid, users.username, users.name FROM post_comments JOIN users ON post_comments.user_id = users.id WHERE post_comments.post_id = @postId ORDER BY post_comments.createdAt ASC;", DatabaseService.Connection);
+
+        commentCommand.Parameters.AddWithValue("@postId", postId);
+
+        using var commentReader = commentCommand.ExecuteReader();
+        while (commentReader.Read())
+        {
+            comments.Add(new Comment(
+                commentReader.GetInt32("id"),
+                commentReader.GetString("content"),
+                commentReader.GetDateTime("createdAt"),
+                new PostAuthor(
+                    commentReader.GetInt32("uid"),
+                    commentReader.GetString("username"),
+                    commentReader.GetString("name")
+                )
+            ));
+        }
+
+        return comments;
     }
 
 }
