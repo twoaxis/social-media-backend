@@ -83,6 +83,31 @@ namespace social_media_backend.src.Controllers
             }
         }
 
+        [HttpPost("{postId}/unlike")]
+        public IActionResult UnlikePost(int postId)
+        {
+            if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
+            if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
+
+            try
+            {
+                var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
+
+                _postService.UnlikePost(userId, postId);
+
+                return Ok();
+            }
+            catch (SecurityTokenException)
+            {
+                return Unauthorized();
+            }
+            catch (InvalidOperationException e)
+            {
+                return Conflict();
+            }
+        }
+
+
         [HttpPut("{postId}/comment")]
         public IActionResult AddComment(int postId, [FromBody] CommentCreationModel commentModel)
         {

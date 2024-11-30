@@ -131,6 +131,33 @@ public class PostService
             DatabaseService.CloseConnection();
         }
     }
+
+    public void UnlikePost(int userId, int postId)
+    {
+        try
+        {
+            DatabaseService.OpenConnection();
+
+            using var command = new MySqlCommand(
+                "DELETE FROM post_likes WHERE user_id = @userId AND post_id = @postId;",
+                DatabaseService.Connection
+            );
+            command.Parameters.AddWithValue("@userId", userId);
+            command.Parameters.AddWithValue("@postId", postId);
+
+            int rowsAffected = command.ExecuteNonQuery();
+            if (rowsAffected == 0)
+            {
+                // No like was found for this user and post
+                throw new InvalidOperationException("The user hasn't liked this post.");
+            }
+        }
+        finally
+        {
+            DatabaseService.CloseConnection();
+        }
+    }
+
     public int AddComment(int userId, int postId, string content)
     {
         try
