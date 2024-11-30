@@ -39,7 +39,6 @@ public class PostService
 			using var reader = command.ExecuteReader();
 			while (reader.Read())
 			{
-                int postId = reader.GetInt32("id");
                 posts.Add(new Post(
 					reader.GetInt32("id"),
 					reader.GetString("content"),
@@ -51,10 +50,16 @@ public class PostService
                     ),
                     reader.GetInt32("likeCount"),
                     reader.GetBoolean("isLiked"),
-                    GetComments(postId) // Fetch comments for each post
+					[]
                 ));
 			}
-		}
+            reader.Close();
+            foreach (var post in posts)
+            {
+                post.comments = GetComments(post.id);
+            }
+
+        }
 		finally
 		{
 			DatabaseService.CloseConnection();
@@ -76,7 +81,6 @@ public class PostService
 			using var reader = command.ExecuteReader();
 			while (reader.Read())
 			{
-                int postId = reader.GetInt32("id");
                 posts.Add(new Post(
 					reader.GetInt32("id"),
 					reader.GetString("content"),
@@ -88,8 +92,13 @@ public class PostService
 					),
                     reader.GetInt32("likeCount"),
 					reader.GetBoolean("isLiked"),
-                    GetComments(postId) // Fetch comments for each post
-                ));
+	               []
+				));
+			}
+			reader.Close();
+			foreach(var post in posts)
+			{
+				post.comments = GetComments(post.id);
 			}
 		}
 		finally
