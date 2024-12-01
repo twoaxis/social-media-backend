@@ -1,13 +1,10 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Tokens;
 using social_media_backend.Exceptions.Auth;
 using social_media_backend.Models.Post;
 using social_media_backend.Services;
 using social_media_backend.Util;
 
-namespace social_media_backend.src.Controllers
+namespace social_media_backend.Controllers
 {
 	[Route("/posts")]
 	[ApiController]
@@ -33,7 +30,7 @@ namespace social_media_backend.src.Controllers
 					postId
 				});
 			}
-			catch (InvalidTokenException e)
+			catch (InvalidTokenException)
 			{
 				return Unauthorized();
 			}
@@ -53,7 +50,7 @@ namespace social_media_backend.src.Controllers
 
 				return Ok(posts);
 			}
-			catch (InvalidTokenException e)
+			catch (InvalidTokenException)
 			{
 				return Unauthorized();
 			}
@@ -74,7 +71,7 @@ namespace social_media_backend.src.Controllers
 
                 return Ok();
             }
-            catch (SecurityTokenException)
+            catch (InvalidTokenException)
             {
                 return Unauthorized();
             }
@@ -98,11 +95,11 @@ namespace social_media_backend.src.Controllers
 
                 return Ok();
             }
-            catch (SecurityTokenException)
+            catch (InvalidTokenException)
             {
                 return Unauthorized();
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return Conflict();
             }
@@ -126,7 +123,7 @@ namespace social_media_backend.src.Controllers
                     commentId
                 });
             }
-            catch (SecurityTokenException)
+            catch (InvalidTokenException)
             {
                 return Unauthorized();
             }
