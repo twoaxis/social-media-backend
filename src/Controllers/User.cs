@@ -98,7 +98,7 @@ namespace social_media_backend.src.Controllers
 
                 bool success = _userService.UnfollowUser(followerId, followingId);
                 if (!success)
-                    return NotFound(); // You are not following this user.
+                    return Conflict(); // You are not following this user.
 
                 return Ok(); // Successfully unfollowed the user
             }
