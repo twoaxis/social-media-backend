@@ -6,6 +6,8 @@ using social_media_backend.src.Exceptions;
 using social_media_backend.src.Services;
 using social_media_backend.Util;
 using social_media_backend.src.Services;
+using Org.BouncyCastle.Asn1.Ocsp;
+using social_media_backend.Models.Friend;
 namespace social_media_backend.Controllers
 {
     [ApiController]
@@ -19,6 +21,7 @@ namespace social_media_backend.Controllers
         [HttpPut("{username}")]
         public IActionResult SendFriendRequest(string username)
         {
+            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
@@ -43,6 +46,7 @@ namespace social_media_backend.Controllers
         [HttpPost("{username}/accept")]
         public IActionResult AcceptFriendRequest(string username)
         {
+            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
@@ -67,6 +71,7 @@ namespace social_media_backend.Controllers
         [HttpPost("{username}/reject")]
         public IActionResult RejectFriendRequest(string username)
         {
+            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
@@ -91,6 +96,7 @@ namespace social_media_backend.Controllers
         [HttpGet]
         public IActionResult GetFriends()
         {
+            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
@@ -110,6 +116,7 @@ namespace social_media_backend.Controllers
         [HttpGet("requests")]
         public IActionResult GetFriendRequests()
         {
+            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
