@@ -41,3 +41,12 @@ CREATE TABLE post_comments (
     content TEXT NOT NULL,
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE friends (
+    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    user1_id INT(11) NOT NULL REFERENCES users(id),
+    user2_id INT(11) NOT NULL REFERENCES users(id),
+    status ENUM('pending', 'accepted', 'rejected') NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE (user1_id, user2_id)
+);

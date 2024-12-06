@@ -33,7 +33,7 @@ public class PostService
 
 		try
 		{
-			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name, (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likeCount, EXISTS (SELECT 1 FROM post_likes WHERE post_likes.post_id = posts.id AND post_likes.user_id = @userId) AS isLiked FROM posts JOIN users ON posts.author = users.id WHERE users.id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
+			using var command = new MySqlCommand("SELECT posts.id, posts.content, posts.createdAt, posts.createdAt, users.id AS uid, users.username, users.name, (SELECT COUNT(*) FROM post_likes WHERE post_likes.post_id = posts.id) AS likeCount, EXISTS (SELECT 1 FROM post_likes WHERE post_likes.post_id = posts.id AND post_likes.user_id = @id) AS isLiked FROM posts JOIN users ON posts.author = users.id WHERE users.id = @id ORDER BY posts.createdAt DESC;", DatabaseService.Connection);
 			command.Parameters.AddWithValue("@id", userId);
 			
 			using var reader = command.ExecuteReader();
