@@ -5,7 +5,6 @@ namespace social_media_backend.Services;
 
 public class FriendService
 {
-    // إرسال طلب صداقة
     public void SendFriendRequest(int userId, int targetUserId)
     {
         try
@@ -28,7 +27,6 @@ public class FriendService
         }
     }
 
-    // قبول طلب صداقة
     public void AcceptFriendRequest(int userId, int requesterId)
     {
         try
@@ -51,7 +49,6 @@ public class FriendService
         }
     }
 
-    // رفض طلب صداقة
     public void RejectFriendRequest(int userId, int requesterId)
     {
         try
@@ -74,7 +71,6 @@ public class FriendService
         }
     }
 
-    // استرجاع قائمة الأصدقاء
     public List<Friend> GetFriends(int userId)
     {
         List<Friend> friends = new();
@@ -110,8 +106,6 @@ public class FriendService
 
         return friends;
     }
-
-    // استرجاع طلبات الصداقة
     public List<Friend> GetFriendRequests(int userId)
     {
         List<Friend> requests = new();

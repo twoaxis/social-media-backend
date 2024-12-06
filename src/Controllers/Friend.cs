@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using social_media_backend.Exceptions;
 using social_media_backend.Exceptions.Auth;
 using social_media_backend.Services;
 using social_media_backend.src.Exceptions;
 using social_media_backend.src.Services;
 using social_media_backend.Util;
-using social_media_backend.src.Services;
-using Org.BouncyCastle.Asn1.Ocsp;
-using social_media_backend.Models.Friend;
 namespace social_media_backend.Controllers
 {
     [ApiController]
@@ -15,88 +11,84 @@ namespace social_media_backend.Controllers
     public class FriendController : ControllerBase
     {
         private readonly FriendService _friendService = new();
-        private readonly UserService _UserService = new();
+        private readonly UserService _userService = new();
 
 
         [HttpPut("{username}")]
         public IActionResult SendFriendRequest(string username)
         {
-            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
             try
             {
                 var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
-                var targetUserId = _UserService.GetUserIdByUsername(username); // افترض وجود هذه الدالة
+                var targetUserId = _userService.GetUserIdByUsername(username); 
 
                 _friendService.SendFriendRequest(userId, targetUserId);
-                return Ok(new { message = "Friend request sent." });
+                return Ok();
             }
             catch (InvalidTokenException)
             {
-                return Unauthorized(new { message = "Invalid token." });
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
-                return NotFound(new { message = "Target user not found." });
+                return NotFound();
             }
         }
 
         [HttpPost("{username}/accept")]
         public IActionResult AcceptFriendRequest(string username)
         {
-            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
             try
             {
                 var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
-                var requesterId = _UserService.GetUserIdByUsername(username);
+                var requesterId = _userService.GetUserIdByUsername(username);
 
                 _friendService.AcceptFriendRequest(userId, requesterId);
                 return Ok(new { message = "Friend request accepted." });
             }
             catch (InvalidTokenException)
             {
-                return Unauthorized(new { message = "Invalid token." });
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
-                return NotFound(new { message = "Requesting user not found." });
+                return NotFound();
             }
         }
 
         [HttpPost("{username}/reject")]
         public IActionResult RejectFriendRequest(string username)
         {
-            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
             try
             {
                 var userId = TokenUtil.ValidateToken(authorizationHeader.ToString().Split(" ")[1]);
-                var requesterId = _UserService.GetUserIdByUsername(username);
+                var requesterId = _userService.GetUserIdByUsername(username);
 
                 _friendService.RejectFriendRequest(userId, requesterId);
-                return Ok(new { message = "Friend request rejected." });
+                return Ok();
             }
             catch (InvalidTokenException)
             {
-                return Unauthorized(new { message = "Invalid token." });
+                return Unauthorized();
             }
             catch (UserNotFoundException)
             {
-                return NotFound(new { message = "Requesting user not found." });
+                return NotFound();
             }
         }
 
         [HttpGet]
         public IActionResult GetFriends()
         {
-            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
@@ -109,14 +101,13 @@ namespace social_media_backend.Controllers
             }
             catch (InvalidTokenException)
             {
-                return Unauthorized(new { message = "Invalid token." });
+                return Unauthorized();
             }
         }
 
         [HttpGet("requests")]
         public IActionResult GetFriendRequests()
         {
-            DatabaseService.OpenConnection();
             if (!Request.Headers.TryGetValue("Authorization", out var authorizationHeader)) return Unauthorized();
             if (!authorizationHeader.ToString().StartsWith("Bearer ")) return Unauthorized();
 
@@ -129,7 +120,7 @@ namespace social_media_backend.Controllers
             }
             catch (InvalidTokenException)
             {
-                return Unauthorized(new { message = "Invalid token." });
+                return Unauthorized();
             }
         }
     }
