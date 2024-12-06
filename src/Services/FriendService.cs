@@ -1,10 +1,13 @@
 ﻿using MySql.Data.MySqlClient;
 using social_media_backend.Models.Friend;
+using social_media_backend.src.Services;
 
 namespace social_media_backend.Services;
 
 public class FriendService
 {
+    
+    private readonly UserService _userService = new();
     public void SendFriendRequest(int userId, int targetUserId)
     {
         try
@@ -42,6 +45,9 @@ public class FriendService
             command.Parameters.AddWithValue("@requesterId", requesterId);
 
             command.ExecuteNonQuery();
+            
+            _userService.FollowUser(userId, requesterId);
+            _userService.FollowUser(requesterId, userId);
         }
         finally
         {
