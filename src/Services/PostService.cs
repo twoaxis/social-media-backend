@@ -121,6 +121,12 @@ public class PostService
             command.Parameters.AddWithValue("@postId", postId);
 
             command.ExecuteNonQuery();
+
+            //Create Notification
+            var notificationService = new NotificationService();
+            var postAuthorId = GetPostAuthorId(postId);
+            string username = GetUsernameById(userId);
+            notificationService.CreateNotification(postAuthorId, "New Like", $"{username} liked your post.");
         }
         catch (MySqlException e) when (e.Number == 1062) // Duplicate entry error
         {
@@ -172,6 +178,13 @@ public class PostService
 
             var result = command.ExecuteScalar();
             var commentId = Convert.ToInt32(result);
+
+            // Create Notification
+            var notificationService = new NotificationService();
+            var postAuthorId = GetPostAuthorId(postId);
+            string username = GetUsernameById(userId);
+            notificationService.CreateNotification(postAuthorId, "New Comment", $"{username} commented on your post.");
+
             return commentId;
         }
         finally
@@ -204,6 +217,29 @@ public class PostService
         }
 
         return comments;
+    }
+
+    private int GetPostAuthorId(int postId)
+    {
+        using var command = new MySqlCommand("SELECT author FROM posts WHERE id = @postId;", DatabaseService.Connection);
+        command.Parameters.AddWithValue("@postId", postId);
+
+        return Convert.ToInt32(command.ExecuteScalar());
+    }
+    private string GetUsernameById(int userId)
+    {
+        using var command = new MySqlCommand("SELECT username FROM users WHERE id = @userId;", DatabaseService.Connection);
+        command.Parameters.AddWithValue("@userId", userId);
+
+        var result = command.ExecuteScalar();
+        if (result != null)
+        {
+            return result.ToString();
+        }
+        else
+        {
+            throw new InvalidOperationException("User not found.");
+        }
     }
 
 }

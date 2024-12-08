@@ -50,3 +50,11 @@ CREATE TABLE friends (
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE (user1_id, user2_id)
 );
+CREATE TABLE notifications (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) NOT NULL REFERENCES users(id), 
+    title VARCHAR(256) NOT NULL,                  
+    description TEXT NOT NULL,                   
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    isRead BOOLEAN NOT NULL DEFAULT FALSE         
+);
