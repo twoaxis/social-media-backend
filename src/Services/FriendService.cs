@@ -23,6 +23,12 @@ public class FriendService
             command.Parameters.AddWithValue("@targetUserId", targetUserId);
 
             command.ExecuteNonQuery();
+
+            //Create Notification
+            var notificationService = new NotificationService();
+            string username = GetUsernameById(userId);
+            notificationService.CreateNotification(targetUserId, "New Friend", $"{username} sent you a friend request.");
+
         }
         finally
         {
@@ -146,5 +152,21 @@ public class FriendService
         }
 
         return requests;
+    }
+
+    private string GetUsernameById(int userId)
+    {
+        using var command = new MySqlCommand("SELECT username FROM users WHERE id = @userId;", DatabaseService.Connection);
+        command.Parameters.AddWithValue("@userId", userId);
+
+        var result = command.ExecuteScalar();
+        if (result != null)
+        {
+            return result.ToString();
+        }
+        else
+        {
+            throw new InvalidOperationException("User not found.");
+        }
     }
 }

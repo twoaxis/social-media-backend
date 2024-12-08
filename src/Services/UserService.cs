@@ -115,6 +115,12 @@ namespace social_media_backend.src.Services
                     command.Parameters.AddWithValue("@followingId", followingId);
                     int result = command.ExecuteNonQuery();
 
+                    //Create Notification
+                    var notificationService = new NotificationService();
+                    string username = GetUsernameById(followerId);
+                    notificationService.CreateNotification(followingId, "New Follower", $"{username} started following you.");
+
+
                     return result > 0;
                 }
             }
@@ -244,6 +250,21 @@ namespace social_media_backend.src.Services
             }
             
             return users.ToArray();
+        }
+        private string GetUsernameById(int userId)
+        {
+            using var command = new MySqlCommand("SELECT username FROM users WHERE id = @userId;", DatabaseService.Connection);
+            command.Parameters.AddWithValue("@userId", userId);
+
+            var result = command.ExecuteScalar();
+            if (result != null)
+            {
+                return result.ToString();
+            }
+            else
+            {
+                throw new InvalidOperationException("User not found.");
+            }
         }
     }
 }
