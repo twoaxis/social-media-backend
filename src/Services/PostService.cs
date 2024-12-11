@@ -96,6 +96,7 @@ public class PostService
 				));
 			}
 			reader.Close();
+			DatabaseService.CloseConnection();
 			foreach(var post in posts)
 			{
 				post.comments = GetComments(post.id);
