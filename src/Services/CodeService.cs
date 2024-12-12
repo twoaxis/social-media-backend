@@ -2,11 +2,14 @@ using System.Security.Cryptography;
 using System.Text;
 using MySql.Data.MySqlClient;
 using social_media_backend.Exceptions;
+using social_media_backend.src.Services;
 
 namespace social_media_backend.Services;
 
 public class CodeService
 {
+    private readonly UserService _userService = new();
+    
     private string GenerateCode()
     {
         return new Random().Next(0, 1000000).ToString("D6");
@@ -77,7 +80,62 @@ public class CodeService
         return sessionId;
     }
 
-    public int VerifyCode(string sessionId, string code)
+    public string CreateNewForgetPasswordCode(string email)
+    {
+        var code = GenerateCode();
+        var sessionId = GenerateSessionId();
+
+        DatabaseService.OpenConnection();
+
+        try
+        {
+            var userId = _userService.GetUserIdByEmail(email);
+            
+            using var command =
+                new MySqlCommand(
+                    "INSERT INTO forget_password_codes (uid, code, session_id) VALUES (@uid, @code, @sessionId)",
+                    DatabaseService.Connection);
+
+            command.Parameters.AddWithValue("@uid", userId);
+            command.Parameters.AddWithValue("@code", code);
+            command.Parameters.AddWithValue("@sessionId", sessionId);
+
+            command.ExecuteNonQuery();
+
+            Console.WriteLine($"The forget password code for {email} is {code}");
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")!.Equals("Production",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                using var httpClient = new HttpClient();
+
+                httpClient.DefaultRequestHeaders.Add("api-key", Environment.GetEnvironmentVariable("BREVO_API_KEY"));
+
+                var jsonContent = $"{{" +
+                                  $"\"subject\": \"Reset your TwoAxis Social password\"," +
+                                  $"\"htmlContent\": \"<html><body><p>{code}</p></body></html>\"," +
+                                  $"\"sender\": {{ \"email\": \"noreply@twoaxis.xyz\", \"name\": \"TwoAxis Social\" }}," +
+                                  $"\"to\": [{{ \"email\": \"{email}\" }}]" +
+                                  $"}}";
+
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = httpClient.PostAsync("https://api.brevo.com/v3/smtp/email", content)
+                    .GetAwaiter().GetResult();
+
+                response.EnsureSuccessStatusCode();
+            }
+
+        }
+        finally
+        {
+            DatabaseService.CloseConnection();
+        }
+
+        return sessionId;
+    }
+
+    public int VerifyEmailCode(string sessionId, string code)
     {
         DatabaseService.OpenConnection();
 
@@ -98,6 +156,34 @@ public class CodeService
                 using var deleteCommand = new MySqlCommand("DELETE FROM email_verification_codes WHERE uid=@uid", DatabaseService.Connection);
                 deleteCommand.Parameters.AddWithValue("@uid", uid);
                 deleteCommand.ExecuteNonQuery();
+
+                return uid;
+            }
+            else throw new InvalidVerificationCodeException(); 
+        }
+        finally
+        {
+            DatabaseService.CloseConnection();
+        }
+    }
+    
+    public int VerifyForgetPasswordCode(string sessionId, string code)
+    {
+        DatabaseService.OpenConnection();
+
+        try
+        {
+            using var command = new MySqlCommand("SELECT uid FROM forget_password_codes WHERE session_id = @sessionId AND code = @code", DatabaseService.Connection);
+            
+            command.Parameters.AddWithValue("@sessionId", sessionId);
+            command.Parameters.AddWithValue("@code", code);
+            
+            using var reader = command.ExecuteReader();
+            
+            if (reader.Read())
+            {
+                var uid = Convert.ToInt32(reader["uid"]);
+                reader.Close();
 
                 return uid;
             }

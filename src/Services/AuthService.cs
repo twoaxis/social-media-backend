@@ -40,6 +40,26 @@ public class AuthService
 		}
 	}
 
+	public void UpdatePassword(int uid, string password)
+	{
+
+		try
+		{
+			DatabaseService.OpenConnection();
+
+			using var command = new MySqlCommand("UPDATE users SET password = @password WHERE id = @uid",
+				DatabaseService.Connection);
+			command.Parameters.AddWithValue("@uid", uid);
+			command.Parameters.AddWithValue("@password", HashUtil.GenerateSHA256Hash(password));
+
+			command.ExecuteNonQuery();
+		}
+		finally
+		{
+			DatabaseService.CloseConnection();
+		}
+	}
+
 	public string Login(string email, string password)
 	{
 		DatabaseService.OpenConnection();
