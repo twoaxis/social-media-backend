@@ -103,6 +103,7 @@ namespace social_media_backend.src.Services
             var result = command.ExecuteScalar();
             return Convert.ToInt32(result) > 0;
         }
+        
 
         public bool FollowUser(int followerId, int followingId)
         {
@@ -126,15 +127,24 @@ namespace social_media_backend.src.Services
 
         public int GetUserIdByUsername(string username)
         {
-            using (var command = new MySqlCommand("SELECT id FROM users WHERE username = @username", DatabaseService.Connection))
-            {
-                command.Parameters.AddWithValue("@username", username);
-                var result = command.ExecuteScalar();
-                if (result != null)
-                    return Convert.ToInt32(result);
+            using var command = new MySqlCommand("SELECT id FROM users WHERE username = @username", DatabaseService.Connection);
+            command.Parameters.AddWithValue("@username", username);
+            var result = command.ExecuteScalar();
+            if (result != null)
+                return Convert.ToInt32(result);
 
-                throw new UserNotFoundException();
-            }
+            throw new UserNotFoundException();
+        }
+        
+        public int GetUserIdByEmail(string email)
+        {
+            using var command = new MySqlCommand("SELECT id FROM users WHERE email = @email", DatabaseService.Connection);
+            command.Parameters.AddWithValue("@email", email);
+            var result = command.ExecuteScalar();
+            if (result != null)
+                return Convert.ToInt32(result);
+
+            throw new UserNotFoundException();
         }
 
 

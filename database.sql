@@ -16,6 +16,11 @@ CREATE TABLE email_verification_codes(
     session_id VARCHAR(1024) UNIQUE NOT NULL,
     code VARCHAR(6) NOT NULL
 );
+CREATE TABLE forget_password_codes(
+    uid INT(11) NOT NULL REFERENCES users(id),
+    session_id VARCHAR(1024) UNIQUE NOT NULL,
+    code VARCHAR(6) NOT NULL
+);
 CREATE TABLE posts (
     id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     author INT(11) NOT NULL REFERENCES users(id),

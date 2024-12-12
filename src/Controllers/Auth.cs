@@ -78,7 +78,7 @@ namespace social_media_backend.Controllers
 		{
 			try
 			{
-				var uid = _codeService.VerifyCode(emailVerificationRequestModel.sessionId, emailVerificationRequestModel.code);
+				var uid = _codeService.VerifyEmailCode(emailVerificationRequestModel.sessionId, emailVerificationRequestModel.code);
 				
 				var token = _authService.VerifyMail(uid);
 
@@ -112,6 +112,53 @@ namespace social_media_backend.Controllers
 	            return Unauthorized();
             }
         }
+
+		[HttpPost("resetpassword")]
+		public IActionResult ResetPassword([FromBody] ResetPasswordRequestModel resetPasswordRequestModel)
+		{
+			try
+			{
+				var sessionId = _codeService.CreateNewForgetPasswordCode(resetPasswordRequestModel.email);
+				
+				return Ok(new {
+					sessionId
+				});
+			}
+			catch (UserNotFoundException)
+			{
+				return NotFound();
+			}
+		}
+		[HttpPost("resetpassword/verify")]
+		public IActionResult ResetPasswordVerifyCode([FromBody] ResetPasswordCodeVerificationRequest resetPasswordCodeVerification)
+		{
+			try
+			{
+				_codeService.VerifyForgetPasswordCode(resetPasswordCodeVerification.sessionId, resetPasswordCodeVerification.code);
+
+				return Ok();
+			}
+			catch (InvalidVerificationCodeException)
+			{
+				return Unauthorized();
+			}
+		}
+		[HttpPost("resetpassword/update")]
+		public IActionResult ResetPasswordChange([FromBody] ResetPasswordUpdateRequest resetPasswordUpdateRequest)
+		{
+			try
+			{
+				var uid = _codeService.VerifyForgetPasswordCode(resetPasswordUpdateRequest.sessionId, resetPasswordUpdateRequest.code);
+				
+				_authService.UpdatePassword(uid, resetPasswordUpdateRequest.newPassword);
+
+				return Ok();
+			}
+			catch (InvalidVerificationCodeException)
+			{
+				return Unauthorized();
+			}
+		}
 	}
     
 }
