@@ -49,7 +49,7 @@ public class AuthService
 
 			using var command = new MySqlCommand("UPDATE users SET password = @password WHERE id = @uid",
 				DatabaseService.Connection);
-			command.Parameters.AddWithValue("@uid", uid);
+			command.Parameters.AddWithValue("@id", uid);
 			command.Parameters.AddWithValue("@password", HashUtil.GenerateSHA256Hash(password));
 
 			command.ExecuteNonQuery();
@@ -70,8 +70,9 @@ public class AuthService
 		
 			var userId = -1;
 			var storedPasswordHash = string.Empty;
+			var username = string.Empty;
 
-			using var command = new MySqlCommand("SELECT id, email, password, email_verified FROM users WHERE email = @email AND password = @password", DatabaseService.Connection);
+			using var command = new MySqlCommand("SELECT id, username, email, password, email_verified FROM users WHERE email = @email AND password = @password", DatabaseService.Connection);
 			command.Parameters.AddWithValue("@email", email);
 			command.Parameters.AddWithValue("@password", HashUtil.GenerateSHA256Hash(password));
 			var result = command.ExecuteReader();
@@ -80,12 +81,13 @@ public class AuthService
 			{
 				userId = result.GetInt32("id");
 				storedPasswordHash = result.GetString("password");
+				username = result.GetString("username");
 				if (!result.GetBoolean("email_verified")) throw new UserNotVerifiedException(userId);
 			}
 
 			if (HashUtil.GenerateSHA256Hash(password) != storedPasswordHash) throw new InvalidCredentialsException();
 			
-			return TokenUtil.CreateToken(userId.ToString(), email);
+			return TokenUtil.CreateToken(userId.ToString(), email, username);
 		}
 		finally
 		{
@@ -106,16 +108,21 @@ public class AuthService
 				updateCommand.ExecuteNonQuery();
 			}
 
-			string email;
-			using (var selectCommand = new MySqlCommand("SELECT email FROM users WHERE id = @id", DatabaseService.Connection))
+			var email = String.Empty;
+			var username = String.Empty;
+			using (var selectCommand = new MySqlCommand("SELECT email, username FROM users WHERE id = @id", DatabaseService.Connection))
 			{
 				selectCommand.Parameters.AddWithValue("@id", uid);
-				var result = selectCommand.ExecuteScalar();
+				var result = selectCommand.ExecuteReader();
 
-				email = result!.ToString() ?? string.Empty;
+				if (result.Read())
+				{
+					email = result.GetString("email");
+					username = result.GetString("username");
+				}
 			}
 			
-			return TokenUtil.CreateToken(uid.ToString(), email);
+			return TokenUtil.CreateToken(uid.ToString(), email, username);
 		}
 		finally
 		{

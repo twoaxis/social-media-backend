@@ -16,7 +16,7 @@ public static class TokenUtil
 		_secret = secret;
 	}
 
-	public static string CreateToken(string id, string email)
+	public static string CreateToken(string id, string email, string username)
 	{
 		var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
 		var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -25,7 +25,8 @@ public static class TokenUtil
 			issuer: "twoaxis.xyz",
 			claims:[
 				new Claim(JwtRegisteredClaimNames.Sub, id),
-				new Claim(JwtRegisteredClaimNames.Email, email)
+				new Claim(JwtRegisteredClaimNames.Email, email),
+				new Claim("Username", username)
 			],
 			expires: DateTime.Now.AddHours(24),
 			signingCredentials: creds
